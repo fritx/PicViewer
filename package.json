@@ -1,0 +1,16 @@
+{
+  "build": {
+    "appId": "fritx.picviewer",
+    "category": "Graphics"
+  },
+  "scripts": {
+    "pack": "build --dir",
+    "dist": "build",
+    "start": "NODE_ENV=development electron app"
+  },
+  "devDependencies": {
+    "devtron": "^1.4.0",
+    "electron": "^1.4.7",
+    "electron-builder": "^8.6.0"
+  }
+}
