@@ -1,6 +1,8 @@
 const { remote, ipcRenderer } = require('electron')
 // const { BrowserWindow } = remote
 const sizeOf = require('image-size')
+const { join, dirname, extname, basename } = require('path')
+const fs = require('fs-extra-promise')
 
 // const win = BrowserWindow.fromId(id)
 const win = remote.getCurrentWindow()
@@ -11,6 +13,7 @@ if (process.env.NODE_ENV === 'development') {
 
 let domReady = false
 let stagedPic = null
+let curPic = null
 
 ipcRenderer.on('show-url', (e, url) => {
   if (!domReady) {
@@ -23,14 +26,14 @@ ipcRenderer.on('show-url', (e, url) => {
 document.addEventListener('DOMContentLoaded', () => {
   domReady = true
 
-  let curPic = location.hash.substr(1)
-  curPic = curPic && decodeURIComponent(curPic)
+  let pic = location.hash.substr(1)
+  pic = pic && decodeURIComponent(pic)
 
   if (stagedPic) {
     displayPic(stagedPic)
     stagedPic = null
-  } else if (curPic) {
-    displayPic(curPic)
+  } else if (pic) {
+    displayPic(pic)
   }
 
   // Possible to get local filesystem path from drag-and-drop file?
@@ -46,9 +49,34 @@ document.addEventListener('DOMContentLoaded', () => {
       displayPic(url)
     }
   }
+
+  document.addEventListener('keydown', ({ keyCode }) => {
+    if (/^37|38$/.test(keyCode)) { // ←/↑
+      gotoPic(-1)
+    } else if (/^39|40$/.test(keyCode)) { // →/↓
+      gotoPic(1)
+    }
+  })
 })
 
+function gotoPic (offset) {
+  const file = curPic.replace(/^file:\/\//, '')
+  const name = basename(file)
+  const dir = dirname(file)
+  fs.readdirAsync(dir)
+    .then(list => {
+      list = list.filter(v => {
+        return /^\.(jpe?g|png|gif|bmp)$/.test(extname(v))
+      })
+      const i = list.indexOf(name)
+      const n = list[(i + offset + list.length) % list.length]
+      const to = join(dir, n)
+      displayPic(`file://${to}`)
+    })
+}
+
 function displayPic (url) {
+  curPic = url
   location.hash = encodeURIComponent(url)
   const img = document.querySelector('img')
   img.hidden = true
