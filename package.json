@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "devtron": "^1.4.0",
-    "electron": "^1.4.7",
+    "electron": "^9.1.0",
     "electron-builder": "^8.6.0"
   }
 }
